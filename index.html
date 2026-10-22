@@ -1,0 +1,908 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FCF2E4">
+<title>Leidhany Faz 47 · Foto da Festa</title>
+<link rel="preload" href="permanent-marker.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fundo.jpg" as="image">
+<link rel="preload" href="frente.webp" as="image">
+<style>
+  @font-face {
+    font-family: "Permanent Marker";
+    src: url("permanent-marker.woff2") format("woff2");
+    font-display: swap;
+  }
+
+  :root {
+    --papel: #FCF2E4;
+    --rosa: #E8177D;
+    --rosa-escuro: #B80E5F;
+    --amarelo: #FFE11A;
+    --ciano: #22C1D6;
+    --tinta: #141414;
+    --branco: #FFFFFF;
+    --texto-suave: #5B4F45;
+    --marcador: "Permanent Marker", "Comic Sans MS", cursive;
+    --sistema: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--sistema);
+    overscroll-behavior: none;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(232, 23, 125, .10) 0 2px, transparent 3px),
+      radial-gradient(circle at 78% 62%, rgba(34, 193, 214, .12) 0 2px, transparent 3px),
+      radial-gradient(circle at 42% 88%, rgba(255, 225, 26, .22) 0 2px, transparent 3px);
+    background-size: 90px 90px, 120px 120px, 70px 70px;
+  }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+
+  .tela {
+    display: none;
+    min-height: 100vh;
+    min-height: 100svh;
+    flex-direction: column;
+    align-items: center;
+    padding: max(12px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+  }
+  .tela.ativa { display: flex; }
+
+  /* ---------- Início ---------- */
+  #inicio { justify-content: center; gap: 22px; text-align: center; }
+
+  .capa {
+    width: min(64vw, 260px);
+    aspect-ratio: 2 / 3;
+    border: 3px solid var(--tinta);
+    border-radius: 16px;
+    background: url("fundo.jpg") center / cover;
+    box-shadow: 7px 7px 0 var(--tinta);
+    transform: rotate(-3deg);
+    position: relative;
+  }
+  .capa::after {
+    content: "você aqui!";
+    position: absolute;
+    left: 58%; top: 64%;
+    transform: translate(-50%, -50%) rotate(4deg);
+    font-family: var(--marcador);
+    font-size: 22px;
+    color: var(--rosa);
+    background: var(--branco);
+    border: 2.5px dashed var(--rosa);
+    border-radius: 999px;
+    padding: 8px 16px;
+    white-space: nowrap;
+  }
+
+  h1 {
+    font-family: var(--marcador);
+    font-weight: 400;
+    font-size: clamp(28px, 8vw, 38px);
+    line-height: 1.05;
+    margin: 0;
+  }
+  h1 .marca {
+    background: var(--amarelo);
+    padding: 0 .18em;
+    white-space: nowrap;
+  }
+
+  .sub { margin: 0; max-width: 32ch; font-size: 16px; line-height: 1.45; color: var(--texto-suave); }
+  .miudo { margin: 0; max-width: 34ch; font-size: 13px; line-height: 1.4; color: var(--texto-suave); }
+
+  .botao {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    min-height: 56px;
+    padding: 0 26px;
+    border: 3px solid var(--tinta);
+    border-radius: 999px;
+    background: var(--rosa);
+    color: var(--branco);
+    font-family: var(--marcador);
+    font-size: 21px;
+    letter-spacing: .5px;
+    box-shadow: 4px 4px 0 var(--tinta);
+    transition: transform .08s, box-shadow .08s;
+    text-decoration: none;
+  }
+  .botao:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--tinta); }
+  .botao.secundario { background: var(--branco); color: var(--tinta); }
+  .botao.amarelo { background: var(--amarelo); color: var(--tinta); }
+  .botao[disabled] { opacity: .55; pointer-events: none; }
+  .botao svg { width: 22px; height: 22px; flex: none; }
+
+  .erro {
+    display: none;
+    max-width: 34ch;
+    background: var(--branco);
+    border: 2.5px solid var(--tinta);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    line-height: 1.45;
+    text-align: left;
+    box-shadow: 4px 4px 0 var(--rosa);
+  }
+  .erro.visivel { display: block; }
+  .erro b { color: var(--rosa-escuro); }
+
+  /* ---------- Palco (câmera e resultado) ---------- */
+  .palco {
+    --resto: 210px;
+    position: relative;
+    width: min(calc(100vw - 24px), calc((100vh - var(--resto)) * 2 / 3), 560px);
+    width: min(calc(100vw - 24px), calc((100svh - var(--resto)) * 2 / 3), 560px);
+    aspect-ratio: 2 / 3;
+    border: 3px solid var(--tinta);
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--papel);
+    box-shadow: 5px 5px 0 var(--tinta);
+    flex: none;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .palco canvas, .palco img {
+    display: block; width: 100%; height: 100%;
+    -webkit-touch-callout: default;
+  }
+
+  .selo {
+    position: absolute; left: 50%; top: 46%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(20, 20, 20, .82);
+    color: var(--branco);
+    font-size: 13px; font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: opacity .3s;
+  }
+  .selo.oculto { opacity: 0; }
+  .girando {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,.35); border-top-color: var(--amarelo);
+    animation: gira .8s linear infinite;
+  }
+  @keyframes gira { to { transform: rotate(360deg); } }
+
+  .contagem {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--marcador);
+    font-size: 150px;
+    color: var(--branco);
+    -webkit-text-stroke: 5px var(--tinta);
+    paint-order: stroke fill;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .contagem.pulso { animation: pulso .8s ease-out; }
+  @keyframes pulso {
+    0% { opacity: 0; transform: scale(1.6); }
+    25% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: scale(.85); }
+  }
+
+  .flash { position: absolute; inset: 0; background: var(--branco); opacity: 0; pointer-events: none; }
+  .flash.dispara { animation: flash .45s ease-out; }
+  @keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
+
+  /* ---------- Barra de frases ---------- */
+  .frases {
+    display: flex; align-items: center; gap: 8px;
+    width: min(100%, 560px);
+    margin-top: 12px;
+  }
+  .frase-atual {
+    flex: 1; min-width: 0;
+    height: 46px;
+    display: block;
+    padding: 0 10px;
+    line-height: 41px;
+    text-align: center;
+    background: var(--branco);
+    border: 2.5px solid var(--tinta);
+    border-radius: 12px;
+    font-family: var(--marcador);
+    font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .icone {
+    flex: none;
+    width: 46px; height: 46px;
+    display: grid; place-items: center;
+    background: var(--branco);
+    border: 2.5px solid var(--tinta);
+    border-radius: 12px;
+    box-shadow: 3px 3px 0 var(--tinta);
+    padding: 0;
+  }
+  .icone:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--tinta); }
+  .icone svg { width: 22px; height: 22px; }
+  .icone.dado { background: var(--amarelo); }
+
+  /* ---------- Controles da câmera ---------- */
+  .controles {
+    display: flex; align-items: center; justify-content: space-between;
+    width: min(100%, 360px);
+    margin-top: 14px;
+  }
+  .icone.redondo { width: 54px; height: 54px; border-radius: 50%; }
+  .icone.ligado { background: var(--ciano); }
+  .icone .rotulo { position: absolute; font-size: 11px; font-weight: 800; margin-top: 2px; }
+  .icone.timer { position: relative; }
+
+  .disparo {
+    width: 82px; height: 82px;
+    border-radius: 50%;
+    border: 4px solid var(--tinta);
+    background: var(--branco);
+    padding: 7px;
+    box-shadow: 4px 4px 0 var(--tinta);
+  }
+  .disparo span {
+    display: block; width: 100%; height: 100%;
+    border-radius: 50%;
+    background: var(--rosa);
+    border: 3px solid var(--tinta);
+  }
+  .disparo:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--tinta); }
+  .disparo[disabled] { opacity: .5; pointer-events: none; }
+
+  /* ---------- Resultado ---------- */
+  #resultado .palco { --resto: 300px; }
+  .acoes {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    width: min(100%, 420px);
+    margin-top: 14px;
+  }
+  .acoes .botao { min-height: 52px; font-size: 18px; padding: 0 14px; }
+  .acoes .largo { grid-column: 1 / -1; }
+  .dica { margin-top: 10px; text-align: center; }
+
+  .escondido { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+  @media (min-width: 700px) and (min-height: 700px) {
+    .palco { --resto: 230px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== TELA INICIAL ===================== -->
+<section class="tela ativa" id="inicio">
+  <div class="capa" aria-hidden="true"></div>
+  <h1>Entra na <span class="marca">foto da festa!</span></h1>
+  <p class="sub">A câmera tira você do lugar e te coloca dentro da arte do aniversário da Leidhany. Depois é só postar.</p>
+  <button class="botao" id="btnAbrir">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.6"/></svg>
+    Abrir câmera
+  </button>
+  <div class="erro" id="erroInicio" role="alert"></div>
+  <p class="miudo">O celular vai pedir permissão pra usar a câmera. A foto fica só no seu aparelho, nada é enviado pra lugar nenhum.</p>
+</section>
+
+<!-- ===================== CÂMERA ===================== -->
+<section class="tela" id="camera">
+  <div class="palco" id="palcoCamera">
+    <canvas id="previa" width="717" height="1075" aria-label="Prévia da foto"></canvas>
+    <div class="selo" id="selo"><span class="girando"></span><span id="seloTexto">Carregando efeito…</span></div>
+    <div class="contagem" id="contagem"></div>
+    <div class="flash" id="flash"></div>
+  </div>
+
+  <div id="vagaFrasesCamera" style="width:100%;display:flex;justify-content:center"></div>
+
+  <div class="controles">
+    <button class="icone redondo" id="btnVirar" aria-label="Trocar câmera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10a8 8 0 0 0-14.3-3.6L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 14a8 8 0 0 0 14.3 3.6L20 15.5"/><path d="M20 20v-4.5h-4.5"/></svg>
+    </button>
+    <button class="disparo" id="btnFoto" aria-label="Tirar foto"><span></span></button>
+    <button class="icone redondo timer" id="btnTimer" aria-label="Timer de 3 segundos" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ===================== RESULTADO ===================== -->
+<section class="tela" id="resultado">
+  <div class="palco">
+    <img id="fotoFinal" alt="Sua foto na festa da Leidhany">
+  </div>
+
+  <div id="vagaFrasesResultado" style="width:100%;display:flex;justify-content:center"></div>
+
+  <div class="acoes">
+    <button class="botao largo" id="btnCompartilhar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+      Compartilhar
+    </button>
+    <a class="botao secundario" id="btnSalvar" download="festa-leidhany-47.jpg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Salvar
+    </a>
+    <button class="botao amarelo" id="btnOutra">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      Outra
+    </button>
+  </div>
+  <p class="miudo dica" id="dica">Dá pra trocar a frase antes de postar.</p>
+</section>
+
+<!-- Barra de frases (é movida entre a câmera e o resultado) -->
+<div class="frases" id="barraFrases">
+  <button class="icone" id="btnFraseAnt" aria-label="Frase anterior">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+  </button>
+  <div class="frase-atual" id="fraseAtual" aria-live="polite"></div>
+  <button class="icone" id="btnFraseProx" aria-label="Próxima frase">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+  </button>
+  <button class="icone dado" id="btnFraseSorte" aria-label="Frase aleatória">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.4" fill="currentColor"/></svg>
+  </button>
+</div>
+
+<video id="video" class="escondido" playsinline muted autoplay></video>
+
+<script src="selfie_segmentation.js"></script>
+<script>
+(() => {
+  "use strict";
+
+  /* =========================================================
+     CONFIGURAÇÃO — mexa aqui
+     ========================================================= */
+  const CONFIG = {
+    frases: [
+      "#ColaEmMimQueÉSucesso",
+      "#LeidhanyFaz47",
+      "47 e no auge!",
+      "Vim pelo bolo, fiquei pela resenha",
+      "Tô na festa da rainha!",
+      "Aqui o isopor nunca esvazia",
+      "#47ComTudoEmCima",
+      "Resenha oficial dos 47",
+    ],
+    // Linha (em pixels da arte, 1024x1536) onde começa a área da pessoa.
+    // Aumente pra pessoa aparecer mais baixa, diminua pra subir.
+    topoDaPessoa: 400,
+    // Espessura do contorno branco tipo "adesivo" (pixels da arte). 0 = sem contorno.
+    contorno: 8,
+    // Centro e largura máxima da frase na faixa rosa de baixo (pixels da arte).
+    frase: { x: 512, y: 1440, larguraMax: 790, tamanhoMax: 66, tamanhoMin: 30 },
+    nomeArquivo: "festa-leidhany-47",
+    qualidadeJpeg: 0.92,
+  };
+
+  const ARTE_L = 1024, ARTE_A = 1536;
+  const ESCALA_MASCARA = 0.5;            // máscara em meia resolução (mais leve)
+  const fraco = (navigator.hardwareConcurrency || 4) < 6;
+  const ESCALA_PREVIA = fraco ? 0.55 : 0.7;
+
+  /* ---------- elementos ---------- */
+  const $ = (id) => document.getElementById(id);
+  const video = $("video");
+  const previa = $("previa");
+  const ctxPrevia = previa.getContext("2d");
+  const telas = { inicio: $("inicio"), camera: $("camera"), resultado: $("resultado") };
+  const barraFrases = $("barraFrases");
+
+  /* ---------- estado ---------- */
+  let stream = null;
+  let frontal = true;           // espelha a imagem quando é a câmera da frente
+  let virada = "user";
+  let rodando = false;
+  let loopAtivo = false;
+  let ocupado = false;
+  let timerLigado = false;
+  let capturando = false;
+  let indiceFrase = 0;
+
+  let seg = null;
+  let efeitoPronto = false;
+  let efeitoFalhou = false;
+  let tratadorResultado = null;
+
+  let fotoBlob = null;
+  let fotoUrl = null;
+  let fotoTemMascara = false;
+  const telaFinal = document.createElement("canvas");
+  telaFinal.width = ARTE_L; telaFinal.height = ARTE_A;
+  const ctxFinal = telaFinal.getContext("2d");
+
+  /* ---------- imagens da arte ---------- */
+  const carregarImagem = (src) => new Promise((ok, falha) => {
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = () => falha(new Error("Não carregou " + src));
+    img.src = src;
+  });
+  let fundo = null, frente = null;
+  const artePronta = Promise.all([
+    carregarImagem("fundo.jpg"),
+    carregarImagem("frente.webp"),
+    document.fonts ? document.fonts.load('60px "Permanent Marker"').catch(() => {}) : Promise.resolve(),
+  ]).then(([f, fr]) => { fundo = f; frente = fr; });
+
+  /* ---------- camadas (canvases auxiliares por escala) ---------- */
+  const cacheCamadas = new Map();
+  function camadas(s) {
+    if (cacheCamadas.has(s)) return cacheCamadas.get(s);
+    const topo = Math.round(CONFIG.topoDaPessoa * s);
+    const l = Math.round(ARTE_L * s);
+    const a = Math.round(ARTE_A * s) - topo;
+    const novo = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
+    const ml = Math.round(l * ESCALA_MASCARA), ma = Math.round(a * ESCALA_MASCARA);
+    const c = {
+      s, topo, l, a,
+      quadro: novo(l, a),        // imagem da câmera recortada
+      mascara: novo(ml, ma),     // onde está a pessoa (alfa)
+      contorno: novo(ml, ma),    // contorno branco
+      pessoa: novo(l, a),        // pessoa recortada
+    };
+    // a máscara é lida a cada quadro para ficar mais nítida
+    c.ctxMascara = c.mascara.getContext("2d", { willReadFrequently: true });
+    cacheCamadas.set(s, c);
+    return c;
+  }
+
+  // Copia o quadro atual da câmera para a camada, cortando no formato da área da pessoa
+  function desenharQuadro(c) {
+    const ctx = c.quadro.getContext("2d");
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const r = c.l / c.a;
+    let sw = vw, sh = vw / r;
+    if (sh > vh) { sh = vh; sw = vh * r; }
+    const sx = (vw - sw) / 2;
+    const sy = (vh - sh) * 0.45;
+    ctx.save();
+    ctx.clearRect(0, 0, c.l, c.a);
+    if (frontal) { ctx.translate(c.l, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, c.l, c.a);
+    ctx.restore();
+  }
+
+  // Curva que deixa a borda da máscara mais definida: tira o "fantasma"
+  // das partes em que o MediaPipe ficou em dúvida (abaixo de 30% some, acima de 70% fica inteiro)
+  const CURVA_MASCARA = (() => {
+    const lut = new Uint8ClampedArray(256);
+    const lo = 0.3, hi = 0.7;
+    for (let i = 0; i < 256; i++) {
+      const t = Math.min(1, Math.max(0, (i / 255 - lo) / (hi - lo)));
+      lut[i] = Math.round(t * t * (3 - 2 * t) * 255);
+    }
+    return lut;
+  })();
+
+  // Prepara a máscara (e o contorno) a partir do resultado do MediaPipe
+  function prepararMascara(c, fonteMascara, final) {
+    const m = c.ctxMascara;
+    const mw = c.mascara.width, mh = c.mascara.height;
+    m.globalCompositeOperation = "source-over";
+    m.clearRect(0, 0, mw, mh);
+    if (fonteMascara) {
+      m.drawImage(fonteMascara, 0, 0, mw, mh);
+      const dados = m.getImageData(0, 0, mw, mh);
+      const px = dados.data;
+      for (let i = 3; i < px.length; i += 4) px[i] = CURVA_MASCARA[px[i]];
+      m.putImageData(dados, 0, 0);
+    } else {
+      m.fillStyle = "#000";
+      m.fillRect(0, 0, mw, mh);
+    }
+    // suaviza o topo para não aparecer um corte reto
+    const faixa = Math.max(8, mh * 0.06);
+    const g = m.createLinearGradient(0, 0, 0, faixa);
+    g.addColorStop(0, "rgba(0,0,0,1)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    m.globalCompositeOperation = "destination-out";
+    m.fillStyle = g;
+    m.fillRect(0, 0, mw, faixa);
+    m.globalCompositeOperation = "source-over";
+
+    const o = c.contorno.getContext("2d");
+    o.globalCompositeOperation = "source-over";
+    o.clearRect(0, 0, mw, mh);
+    if (fonteMascara && CONFIG.contorno > 0) {
+      const raio = CONFIG.contorno * c.s * ESCALA_MASCARA;
+      const passos = final ? 24 : 12;
+      for (let i = 0; i < passos; i++) {
+        const ang = (i / passos) * Math.PI * 2;
+        o.drawImage(c.mascara, Math.cos(ang) * raio, Math.sin(ang) * raio);
+      }
+      o.drawImage(c.mascara, 0, 0);
+      o.globalCompositeOperation = "source-in";
+      o.fillStyle = "#fff";
+      o.fillRect(0, 0, mw, mh);
+      o.globalCompositeOperation = "source-over";
+    }
+
+    const p = c.pessoa.getContext("2d");
+    p.globalCompositeOperation = "source-over";
+    p.clearRect(0, 0, c.l, c.a);
+    p.drawImage(c.mascara, 0, 0, c.l, c.a);
+    p.globalCompositeOperation = "source-in";
+    p.drawImage(c.quadro, 0, 0);
+    p.globalCompositeOperation = "source-over";
+  }
+
+  // Monta a foto: fundo → contorno → pessoa → enfeites da frente → frase
+  function montar(ctx, c, temMascara, final) {
+    const s = c.s;
+    const W = Math.round(ARTE_L * s), H = Math.round(ARTE_A * s);
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(fundo, 0, 0, W, H);
+    if (temMascara && CONFIG.contorno > 0) {
+      if (final) {
+        ctx.save();
+        ctx.shadowColor = "rgba(0,0,0,.28)";
+        ctx.shadowBlur = 16 * s;
+        ctx.shadowOffsetY = 5 * s;
+      }
+      ctx.drawImage(c.contorno, 0, c.topo, c.l, c.a);
+      if (final) ctx.restore();
+    }
+    ctx.drawImage(c.pessoa, 0, c.topo);
+    ctx.drawImage(frente, 0, 0, W, H);
+    desenharFrase(ctx, s, CONFIG.frases[indiceFrase]);
+  }
+
+  function desenharFrase(ctx, s, texto) {
+    if (!texto) return;
+    const f = CONFIG.frase;
+    const larguraMax = f.larguraMax * s;
+    const fonte = (t) => `${t * s}px "Permanent Marker", "Comic Sans MS", cursive`;
+
+    let linhas = [texto];
+    let tam = f.tamanhoMax;
+    ctx.font = fonte(tam);
+    while (ctx.measureText(texto).width > larguraMax && tam > f.tamanhoMin) {
+      tam -= 2; ctx.font = fonte(tam);
+    }
+    // ainda não coube: quebra em duas linhas
+    if (ctx.measureText(texto).width > larguraMax && texto.includes(" ")) {
+      const meio = texto.length / 2;
+      let corte = -1, melhor = Infinity;
+      for (let i = 0; i < texto.length; i++) {
+        if (texto[i] === " " && Math.abs(i - meio) < melhor) { melhor = Math.abs(i - meio); corte = i; }
+      }
+      linhas = [texto.slice(0, corte), texto.slice(corte + 1)];
+      tam = Math.min(f.tamanhoMax * 0.72, 48);
+      ctx.font = fonte(tam);
+      const maior = () => Math.max(...linhas.map((l) => ctx.measureText(l).width));
+      while (maior() > larguraMax && tam > 22) { tam -= 2; ctx.font = fonte(tam); }
+    }
+
+    ctx.save();
+    ctx.translate(f.x * s, f.y * s);
+    ctx.rotate(-0.025);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.lineJoin = "round";
+    ctx.miterLimit = 2;
+    const altura = tam * s * 1.02;
+    const inicioY = -((linhas.length - 1) * altura) / 2;
+    linhas.forEach((linha, i) => {
+      const y = inicioY + i * altura;
+      ctx.lineWidth = tam * s * 0.2;
+      ctx.strokeStyle = "#141414";
+      ctx.strokeText(linha, 0, y);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(linha, 0, y);
+    });
+    ctx.restore();
+  }
+
+  /* ---------- MediaPipe (recorte da pessoa) ---------- */
+  async function iniciarEfeito() {
+    try {
+      if (typeof SelfieSegmentation === "undefined") throw new Error("MediaPipe não carregou");
+      seg = new SelfieSegmentation({ locateFile: (arquivo) => arquivo });
+      seg.setOptions({ modelSelection: 0, selfieMode: false });
+      seg.onResults((r) => { if (tratadorResultado) tratadorResultado(r); });
+      await seg.initialize();
+      efeitoPronto = true;
+    } catch (e) {
+      console.error("[festa] efeito indisponível:", e);
+      efeitoFalhou = true;
+    }
+    atualizarSelo();
+  }
+
+  // Se o celular travar no recorte por mais de 8s, cai pro modo moldura em vez de congelar a tela
+  function segmentar(imagem, aoReceber) {
+    tratadorResultado = aoReceber;
+    const envio = seg.send({ image: imagem });
+    const limite = new Promise((_, falha) => setTimeout(() => falha(new Error("recorte demorou demais")), 8000));
+    return Promise.race([envio, limite]).finally(() => { tratadorResultado = null; });
+  }
+
+  function atualizarSelo() {
+    const selo = $("selo"), texto = $("seloTexto");
+    if (efeitoPronto) { selo.classList.add("oculto"); return; }
+    selo.classList.remove("oculto");
+    if (efeitoFalhou) {
+      selo.querySelector(".girando").style.display = "none";
+      texto.textContent = "Recorte indisponível neste celular: modo moldura";
+      setTimeout(() => selo.classList.add("oculto"), 4000);
+    } else {
+      texto.textContent = "Carregando efeito…";
+    }
+  }
+
+  /* ---------- laço da prévia ---------- */
+  async function quadroDaPrevia() {
+    const c = camadas(ESCALA_PREVIA);
+    desenharQuadro(c);
+    if (efeitoPronto) {
+      try {
+        await segmentar(c.quadro, (r) => {
+          prepararMascara(c, r.segmentationMask, false);
+          montar(ctxPrevia, c, true, false);
+        });
+        return;
+      } catch (e) {
+        console.error("[festa] falha no recorte, usando moldura:", e);
+        efeitoPronto = false; efeitoFalhou = true; atualizarSelo();
+      }
+    }
+    prepararMascara(c, null, false);
+    montar(ctxPrevia, c, false, false);
+  }
+
+  async function laco() {
+    if (!rodando) { loopAtivo = false; return; }
+    if (!ocupado && !capturando && video.readyState >= 2 && video.videoWidth > 0) {
+      ocupado = true;
+      try { await quadroDaPrevia(); } catch (e) { console.error(e); }
+      ocupado = false;
+    }
+    requestAnimationFrame(laco);
+  }
+  function iniciarLaco() {
+    rodando = true;
+    if (!loopAtivo) { loopAtivo = true; requestAnimationFrame(laco); }
+  }
+  const esperarLivre = () => new Promise((ok) => {
+    const ver = () => (ocupado ? requestAnimationFrame(ver) : ok());
+    ver();
+  });
+
+  /* ---------- câmera ---------- */
+  function pararStream() {
+    if (stream) stream.getTracks().forEach((t) => t.stop());
+    stream = null;
+  }
+
+  function mensagemErro(nome) {
+    const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (nome === "inseguro") return "<b>O site precisa abrir com https.</b> Confira o endereço do link.";
+    if (nome === "semSuporte") return "<b>Esse navegador não libera a câmera.</b> Se abriu pelo Instagram ou WhatsApp, toque nos três pontinhos e escolha abrir no " + (ios ? "Safari" : "Chrome") + ".";
+    if (nome === "NotAllowedError" || nome === "SecurityError") {
+      return ios
+        ? "<b>A câmera foi bloqueada.</b> Toque no <b>aA</b> da barra de endereço → Ajustes do Site → Câmera → Permitir. Depois recarregue a página."
+        : "<b>A câmera foi bloqueada.</b> Toque no cadeado ao lado do endereço → Permissões → Câmera → Permitir. Depois recarregue a página.";
+    }
+    if (nome === "NotFoundError" || nome === "OverconstrainedError") return "<b>Não achei a câmera desse aparelho.</b>";
+    if (nome === "NotReadableError") return "<b>A câmera está sendo usada por outro app.</b> Feche o outro app e tente de novo.";
+    return "<b>Não consegui abrir a câmera.</b> Recarregue a página e tente de novo.";
+  }
+
+  function mostrarErro(nome) {
+    const caixa = $("erroInicio");
+    caixa.innerHTML = mensagemErro(nome);
+    caixa.classList.add("visivel");
+    mostrarTela("inicio");
+  }
+
+  async function abrirCamera() {
+    if (!window.isSecureContext) return mostrarErro("inseguro");
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return mostrarErro("semSuporte");
+    $("btnAbrir").disabled = true;
+    pararStream();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: virada }, width: { ideal: 1280 }, height: { ideal: 1280 } },
+      });
+    } catch (e) {
+      $("btnAbrir").disabled = false;
+      return mostrarErro(e.name);
+    }
+    const ajustes = stream.getVideoTracks()[0].getSettings ? stream.getVideoTracks()[0].getSettings() : {};
+    frontal = ajustes.facingMode ? ajustes.facingMode === "user" : virada === "user";
+    video.srcObject = stream;
+    try { await video.play(); } catch (e) { /* alguns iPhones só tocam após o próximo toque */ }
+    await artePronta;
+    $("btnAbrir").disabled = false;
+    $("erroInicio").classList.remove("visivel");
+    mostrarTela("camera");
+    atualizarSelo();
+    iniciarLaco();
+    verificarCameras();
+  }
+
+  async function verificarCameras() {
+    try {
+      const lista = await navigator.mediaDevices.enumerateDevices();
+      const qtd = lista.filter((d) => d.kind === "videoinput").length;
+      $("btnVirar").style.visibility = qtd > 1 ? "visible" : "hidden";
+    } catch (e) { /* ignora */ }
+  }
+
+  /* ---------- foto ---------- */
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+  async function contagemRegressiva() {
+    const el = $("contagem");
+    for (const n of [3, 2, 1]) {
+      el.textContent = n;
+      el.classList.remove("pulso"); void el.offsetWidth; el.classList.add("pulso");
+      await espera(850);
+    }
+    el.classList.remove("pulso");
+  }
+
+  async function tirarFoto() {
+    if (capturando || video.readyState < 2) return;
+    $("btnFoto").disabled = true;
+    if (timerLigado) await contagemRegressiva();
+    capturando = true;
+    await esperarLivre();
+
+    const fl = $("flash");
+    fl.classList.remove("dispara"); void fl.offsetWidth; fl.classList.add("dispara");
+
+    const c = camadas(1);
+    desenharQuadro(c);
+    fotoTemMascara = false;
+    if (efeitoPronto) {
+      try {
+        await segmentar(c.quadro, (r) => { prepararMascara(c, r.segmentationMask, true); fotoTemMascara = true; });
+      } catch (e) { console.error(e); }
+    }
+    if (!fotoTemMascara) prepararMascara(c, null, true);
+    await gerarFotoFinal();
+
+    rodando = false;
+    capturando = false;
+    $("btnFoto").disabled = false;
+    mostrarTela("resultado");
+  }
+
+  // Monta (ou remonta, quando troca a frase) a foto final e deixa o arquivo pronto
+  let geracao = 0;
+  async function gerarFotoFinal() {
+    const minha = ++geracao;
+    $("btnCompartilhar").disabled = true;
+    montar(ctxFinal, camadas(1), fotoTemMascara, true);
+    const blob = await new Promise((ok) => telaFinal.toBlob(ok, "image/jpeg", CONFIG.qualidadeJpeg));
+    if (minha !== geracao || !blob) return;
+    if (fotoUrl) URL.revokeObjectURL(fotoUrl);
+    fotoBlob = blob;
+    fotoUrl = URL.createObjectURL(blob);
+    $("fotoFinal").src = fotoUrl;
+    const salvar = $("btnSalvar");
+    salvar.href = fotoUrl;
+    salvar.download = CONFIG.nomeArquivo + ".jpg";
+    $("btnCompartilhar").disabled = false;
+  }
+
+  async function compartilhar() {
+    if (!fotoBlob) return;
+    const arquivo = new File([fotoBlob], CONFIG.nomeArquivo + ".jpg", { type: "image/jpeg" });
+    if (navigator.canShare && navigator.canShare({ files: [arquivo] })) {
+      try { await navigator.share({ files: [arquivo] }); }
+      catch (e) { if (e.name !== "AbortError") $("btnSalvar").click(); }
+    } else {
+      $("btnSalvar").click();
+    }
+  }
+
+  function outraFoto() {
+    mostrarTela("camera");
+    if (video.paused) video.play().catch(() => {});
+    iniciarLaco();
+  }
+
+  /* ---------- frases ---------- */
+  function mostrarFrase() {
+    $("fraseAtual").textContent = CONFIG.frases[indiceFrase] || "";
+    if (telas.resultado.classList.contains("ativa")) gerarFotoFinal();
+  }
+  function mudarFrase(passo) {
+    const n = CONFIG.frases.length;
+    indiceFrase = (indiceFrase + passo + n) % n;
+    mostrarFrase();
+  }
+  function fraseAleatoria() {
+    const n = CONFIG.frases.length;
+    if (n < 2) return;
+    let novo;
+    do { novo = Math.floor(Math.random() * n); } while (novo === indiceFrase);
+    indiceFrase = novo;
+    mostrarFrase();
+  }
+
+  // deslizar o dedo na prévia troca a frase; tocar na faixa de baixo também
+  (function gestos() {
+    const alvo = $("palcoCamera");
+    let x0 = null, y0 = null;
+    alvo.addEventListener("pointerdown", (e) => { x0 = e.clientX; y0 = e.clientY; });
+    alvo.addEventListener("pointerup", (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0, dy = e.clientY - y0;
+      const caixa = alvo.getBoundingClientRect();
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) mudarFrase(dx < 0 ? 1 : -1);
+      else if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && (e.clientY - caixa.top) / caixa.height > 0.86) mudarFrase(1);
+      x0 = null;
+    });
+  })();
+
+  /* ---------- telas ---------- */
+  function mostrarTela(nome) {
+    Object.entries(telas).forEach(([k, el]) => el.classList.toggle("ativa", k === nome));
+    if (nome === "camera") $("vagaFrasesCamera").appendChild(barraFrases);
+    if (nome === "resultado") $("vagaFrasesResultado").appendChild(barraFrases);
+    barraFrases.style.display = nome === "inicio" ? "none" : "flex";
+  }
+
+  /* ---------- eventos ---------- */
+  $("btnAbrir").addEventListener("click", abrirCamera);
+  $("btnFoto").addEventListener("click", tirarFoto);
+  $("btnTimer").addEventListener("click", () => {
+    timerLigado = !timerLigado;
+    $("btnTimer").classList.toggle("ligado", timerLigado);
+    $("btnTimer").setAttribute("aria-pressed", String(timerLigado));
+  });
+  $("btnVirar").addEventListener("click", async () => {
+    virada = virada === "user" ? "environment" : "user";
+    rodando = false;
+    await esperarLivre();
+    await abrirCamera();
+  });
+  $("btnFraseAnt").addEventListener("click", () => mudarFrase(-1));
+  $("btnFraseProx").addEventListener("click", () => mudarFrase(1));
+  $("btnFraseSorte").addEventListener("click", fraseAleatoria);
+  $("btnCompartilhar").addEventListener("click", compartilhar);
+  $("btnOutra").addEventListener("click", outraFoto);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && video.srcObject && video.paused) video.play().catch(() => {});
+  });
+
+  /* ---------- começo ---------- */
+  barraFrases.style.display = "none";
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    $("dica").textContent = "Dá pra trocar a frase antes de postar. Pra guardar na galeria: Compartilhar → Salvar imagem.";
+  }
+  mostrarFrase();
+  previa.width = Math.round(ARTE_L * ESCALA_PREVIA);
+  previa.height = Math.round(ARTE_A * ESCALA_PREVIA);
+  iniciarEfeito();   // já vai baixando o efeito enquanto a pessoa lê a tela inicial
+
+  // atalho para testes: window.festa
+  window.festa = { CONFIG, get efeitoPronto() { return efeitoPronto; }, get efeitoFalhou() { return efeitoFalhou; } };
+})();
+</script>
+</body>
+</html>
