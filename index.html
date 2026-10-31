@@ -6,8 +6,6 @@
 <meta name="theme-color" content="#FCF2E4">
 <title>Leidhany Faz 47 · Foto da Festa</title>
 <link rel="preload" href="permanent-marker.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fundo.jpg" as="image">
-<link rel="preload" href="frente.webp" as="image">
 <style>
   @font-face {
     font-family: "Permanent Marker";
@@ -23,6 +21,7 @@
     --ciano: #22C1D6;
     --tinta: #141414;
     --branco: #FFFFFF;
+    --noite: #2A1B3D;
     --texto-suave: #5B4F45;
     --marcador: "Permanent Marker", "Comic Sans MS", cursive;
     --sistema: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -63,22 +62,25 @@
   #inicio { justify-content: center; gap: 22px; text-align: center; }
 
   .capa {
-    width: min(64vw, 260px);
+    position: relative;
+    width: min(60vw, 250px);
     aspect-ratio: 2 / 3;
     border: 3px solid var(--tinta);
     border-radius: 16px;
-    background: url("fundo.jpg") center / cover;
+    overflow: hidden;
+    background: var(--noite);
     box-shadow: 7px 7px 0 var(--tinta);
     transform: rotate(-3deg);
-    position: relative;
+    margin-bottom: 8px;
   }
+  .capa canvas { display: block; width: 100%; height: 100%; }
   .capa::after {
     content: "você aqui!";
     position: absolute;
-    left: 58%; top: 64%;
+    left: 50%; top: 58%;
     transform: translate(-50%, -50%) rotate(4deg);
     font-family: var(--marcador);
-    font-size: 22px;
+    font-size: 21px;
     color: var(--rosa);
     background: var(--branco);
     border: 2.5px dashed var(--rosa);
@@ -94,11 +96,7 @@
     line-height: 1.05;
     margin: 0;
   }
-  h1 .marca {
-    background: var(--amarelo);
-    padding: 0 .18em;
-    white-space: nowrap;
-  }
+  h1 .marca { background: var(--amarelo); padding: 0 .18em; white-space: nowrap; }
 
   .sub { margin: 0; max-width: 32ch; font-size: 16px; line-height: 1.45; color: var(--texto-suave); }
   .miudo { margin: 0; max-width: 34ch; font-size: 13px; line-height: 1.4; color: var(--texto-suave); }
@@ -149,38 +147,24 @@
     border: 3px solid var(--tinta);
     border-radius: 18px;
     overflow: hidden;
-    background: var(--papel);
+    background: var(--noite);
     box-shadow: 5px 5px 0 var(--tinta);
     flex: none;
     touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
   }
-  .palco canvas, .palco img {
+  .palco video, .palco canvas, .palco img {
+    position: absolute; inset: 0;
     display: block; width: 100%; height: 100%;
-    -webkit-touch-callout: default;
   }
-
-  .selo {
-    position: absolute; left: 50%; top: 46%;
-    transform: translateX(-50%);
-    display: flex; align-items: center; gap: 8px;
-    background: rgba(20, 20, 20, .82);
-    color: var(--branco);
-    font-size: 13px; font-weight: 600;
-    padding: 8px 14px;
-    border-radius: 999px;
-    white-space: nowrap;
-    pointer-events: none;
-    transition: opacity .3s;
+  .palco video {
+    object-fit: cover;
+    object-position: 50% 40%;   /* igual ao corte da foto final */
   }
-  .selo.oculto { opacity: 0; }
-  .girando {
-    width: 14px; height: 14px; border-radius: 50%;
-    border: 2.5px solid rgba(255,255,255,.35); border-top-color: var(--amarelo);
-    animation: gira .8s linear infinite;
-  }
-  @keyframes gira { to { transform: rotate(360deg); } }
+  .palco video.espelhado { transform: scaleX(-1); }
+  .palco canvas { pointer-events: none; }
+  .palco img { -webkit-touch-callout: default; }
 
   .contagem {
     position: absolute; inset: 0;
@@ -205,6 +189,17 @@
   .flash.dispara { animation: flash .45s ease-out; }
   @keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
 
+  /* luz de tela: a tela inteira fica branca para iluminar o rosto no escuro */
+  .luz {
+    position: fixed; inset: 0;
+    background: #FFF8EF;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+    transition: opacity .35s ease-out;
+  }
+  .luz.acesa { opacity: 1; transition: none; }
+
   /* ---------- Barra de frases ---------- */
   .frases {
     display: flex; align-items: center; gap: 8px;
@@ -214,7 +209,6 @@
   .frase-atual {
     flex: 1; min-width: 0;
     height: 46px;
-    display: block;
     padding: 0 10px;
     line-height: 41px;
     text-align: center;
@@ -226,6 +220,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .icone {
+    position: relative;
     flex: none;
     width: 46px; height: 46px;
     display: grid; place-items: center;
@@ -241,14 +236,18 @@
 
   /* ---------- Controles da câmera ---------- */
   .controles {
-    display: flex; align-items: center; justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     width: min(100%, 360px);
     margin-top: 14px;
   }
-  .icone.redondo { width: 54px; height: 54px; border-radius: 50%; }
+  .grupo { display: flex; gap: 10px; }
+  .grupo.esq { justify-content: flex-start; }
+  .grupo.dir { justify-content: flex-end; }
+  .icone.redondo { width: 52px; height: 52px; border-radius: 50%; }
   .icone.ligado { background: var(--ciano); }
-  .icone .rotulo { position: absolute; font-size: 11px; font-weight: 800; margin-top: 2px; }
-  .icone.timer { position: relative; }
+  .icone.luz-ligada { background: var(--amarelo); }
 
   .disparo {
     width: 82px; height: 82px;
@@ -278,8 +277,6 @@
   .acoes .largo { grid-column: 1 / -1; }
   .dica { margin-top: 10px; text-align: center; }
 
-  .escondido { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-
   @media (min-width: 700px) and (min-height: 700px) {
     .palco { --resto: 230px; }
   }
@@ -289,9 +286,9 @@
 
 <!-- ===================== TELA INICIAL ===================== -->
 <section class="tela ativa" id="inicio">
-  <div class="capa" aria-hidden="true"></div>
+  <div class="capa" aria-hidden="true"><canvas id="capa" width="500" height="750"></canvas></div>
   <h1>Entra na <span class="marca">foto da festa!</span></h1>
-  <p class="sub">A câmera tira você do lugar e te coloca dentro da arte do aniversário da Leidhany. Depois é só postar.</p>
+  <p class="sub">Tira uma foto com a moldura do aniversário da Leidhany e posta direto no Instagram ou no WhatsApp.</p>
   <button class="botao" id="btnAbrir">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.4-2h6.6l1.4 2h1.8A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.6"/></svg>
     Abrir câmera
@@ -303,8 +300,8 @@
 <!-- ===================== CÂMERA ===================== -->
 <section class="tela" id="camera">
   <div class="palco" id="palcoCamera">
-    <canvas id="previa" width="717" height="1075" aria-label="Prévia da foto"></canvas>
-    <div class="selo" id="selo"><span class="girando"></span><span id="seloTexto">Carregando efeito…</span></div>
+    <video id="video" playsinline muted autoplay></video>
+    <canvas id="moldura" width="1024" height="1536" aria-label="Moldura da festa"></canvas>
     <div class="contagem" id="contagem"></div>
     <div class="flash" id="flash"></div>
   </div>
@@ -312,13 +309,20 @@
   <div id="vagaFrasesCamera" style="width:100%;display:flex;justify-content:center"></div>
 
   <div class="controles">
-    <button class="icone redondo" id="btnVirar" aria-label="Trocar câmera">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10a8 8 0 0 0-14.3-3.6L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 14a8 8 0 0 0 14.3 3.6L20 15.5"/><path d="M20 20v-4.5h-4.5"/></svg>
-    </button>
+    <div class="grupo esq">
+      <button class="icone redondo" id="btnVirar" aria-label="Trocar câmera">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10a8 8 0 0 0-14.3-3.6L4 8.5"/><path d="M4 4v4.5h4.5"/><path d="M4 14a8 8 0 0 0 14.3 3.6L20 15.5"/><path d="M20 20v-4.5h-4.5"/></svg>
+      </button>
+    </div>
     <button class="disparo" id="btnFoto" aria-label="Tirar foto"><span></span></button>
-    <button class="icone redondo timer" id="btnTimer" aria-label="Timer de 3 segundos" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
-    </button>
+    <div class="grupo dir">
+      <button class="icone redondo" id="btnLuz" aria-label="Luz de tela para foto no escuro" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+      </button>
+      <button class="icone redondo" id="btnTimer" aria-label="Timer de 3 segundos" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2"/><path d="M9.5 2.5h5"/></svg>
+      </button>
+    </div>
   </div>
 </section>
 
@@ -361,9 +365,8 @@
   </button>
 </div>
 
-<video id="video" class="escondido" playsinline muted autoplay></video>
+<div class="luz" id="luz"></div>
 
-<script src="selfie_segmentation.js"></script>
 <script>
 (() => {
   "use strict";
@@ -382,187 +385,91 @@
       "#47ComTudoEmCima",
       "Resenha oficial dos 47",
     ],
-    // Linha (em pixels da arte, 1024x1536) onde começa a área da pessoa.
-    // Aumente pra pessoa aparecer mais baixa, diminua pra subir.
-    topoDaPessoa: 400,
-    // Espessura do contorno branco tipo "adesivo" (pixels da arte). 0 = sem contorno.
-    contorno: 8,
-    // Centro e largura máxima da frase na faixa rosa de baixo (pixels da arte).
+
+    // Adesivos por cima da câmera, desenhados nesta ordem (o último fica por cima).
+    // x e y = CENTRO do adesivo, em pixels da foto final (1024 x 1536).
+    // largura = tamanho do adesivo (a altura acompanha). giro = inclinação em graus.
+    adesivos: [
+      { arquivo: "adesivo-faixa.webp",      x: 508, y: 1442, largura: 988 },
+      { arquivo: "adesivo-isopor.webp",     x: 150, y: 1150, largura: 290 },
+      { arquivo: "adesivo-coracao2.webp",   x: 968, y: 1210, largura: 80 },
+      { arquivo: "adesivo-coracao1.webp",   x: 62,  y: 860,  largura: 72 },
+      { arquivo: "adesivo-calendario.webp", x: 70,  y: 610,  largura: 120 },
+      { arquivo: "adesivo-bolo.webp",       x: 948, y: 900,  largura: 165 },
+      { arquivo: "adesivo-baloes.webp",     x: 900, y: 205,  largura: 250 },
+      { arquivo: "adesivo-foto.webp",       x: 168, y: 215,  largura: 350 },
+      { arquivo: "adesivo-titulo.webp",     x: 560, y: 228,  largura: 600 },
+    ],
+
+    // Centro e largura máxima da frase na faixa rosa de baixo (pixels da foto final).
     frase: { x: 512, y: 1440, larguraMax: 790, tamanhoMax: 66, tamanhoMin: 30 },
+
+    // Luz de tela começa ligada? (a tela fica branca na hora da foto para clarear o rosto)
+    luzLigadaNoInicio: false,
+
     nomeArquivo: "festa-leidhany-47",
     qualidadeJpeg: 0.92,
   };
 
-  const ARTE_L = 1024, ARTE_A = 1536;
-  const ESCALA_MASCARA = 0.5;            // máscara em meia resolução (mais leve)
-  const fraco = (navigator.hardwareConcurrency || 4) < 6;
-  const ESCALA_PREVIA = fraco ? 0.55 : 0.7;
+  const LARG = 1024, ALT = 1536;
+  const POSICAO_VERTICAL = 0.4;   // corte da câmera: 0 = topo, 0.5 = meio (igual ao object-position do CSS)
 
   /* ---------- elementos ---------- */
   const $ = (id) => document.getElementById(id);
   const video = $("video");
-  const previa = $("previa");
-  const ctxPrevia = previa.getContext("2d");
+  const moldura = $("moldura");
+  const ctxMoldura = moldura.getContext("2d");
   const telas = { inicio: $("inicio"), camera: $("camera"), resultado: $("resultado") };
   const barraFrases = $("barraFrases");
 
   /* ---------- estado ---------- */
   let stream = null;
-  let frontal = true;           // espelha a imagem quando é a câmera da frente
+  let frontal = true;
   let virada = "user";
-  let rodando = false;
-  let loopAtivo = false;
-  let ocupado = false;
   let timerLigado = false;
+  let luzLigada = CONFIG.luzLigadaNoInicio;
   let capturando = false;
   let indiceFrase = 0;
 
-  let seg = null;
-  let efeitoPronto = false;
-  let efeitoFalhou = false;
-  let tratadorResultado = null;
-
   let fotoBlob = null;
   let fotoUrl = null;
-  let fotoTemMascara = false;
-  const telaFinal = document.createElement("canvas");
-  telaFinal.width = ARTE_L; telaFinal.height = ARTE_A;
+  const fotoCamera = document.createElement("canvas");   // só a imagem da câmera, sem moldura
+  fotoCamera.width = LARG; fotoCamera.height = ALT;
+  const telaFinal = document.createElement("canvas");    // câmera + moldura
+  telaFinal.width = LARG; telaFinal.height = ALT;
   const ctxFinal = telaFinal.getContext("2d");
 
-  /* ---------- imagens da arte ---------- */
-  const carregarImagem = (src) => new Promise((ok, falha) => {
+  /* ---------- carregar adesivos e fonte ---------- */
+  const carregarImagem = (src) => new Promise((ok) => {
     const img = new Image();
     img.onload = () => ok(img);
-    img.onerror = () => falha(new Error("Não carregou " + src));
+    img.onerror = () => { console.warn("[festa] não carregou", src); ok(null); };
     img.src = src;
   });
-  let fundo = null, frente = null;
-  const artePronta = Promise.all([
-    carregarImagem("fundo.jpg"),
-    carregarImagem("frente.webp"),
+  const imagens = new Map();
+  const tudoPronto = Promise.all([
+    ...CONFIG.adesivos.map((a) => carregarImagem(a.arquivo).then((img) => imagens.set(a.arquivo, img))),
     document.fonts ? document.fonts.load('60px "Permanent Marker"').catch(() => {}) : Promise.resolve(),
-  ]).then(([f, fr]) => { fundo = f; frente = fr; });
+  ]);
 
-  /* ---------- camadas (canvases auxiliares por escala) ---------- */
-  const cacheCamadas = new Map();
-  function camadas(s) {
-    if (cacheCamadas.has(s)) return cacheCamadas.get(s);
-    const topo = Math.round(CONFIG.topoDaPessoa * s);
-    const l = Math.round(ARTE_L * s);
-    const a = Math.round(ARTE_A * s) - topo;
-    const novo = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
-    const ml = Math.round(l * ESCALA_MASCARA), ma = Math.round(a * ESCALA_MASCARA);
-    const c = {
-      s, topo, l, a,
-      quadro: novo(l, a),        // imagem da câmera recortada
-      mascara: novo(ml, ma),     // onde está a pessoa (alfa)
-      contorno: novo(ml, ma),    // contorno branco
-      pessoa: novo(l, a),        // pessoa recortada
-    };
-    // a máscara é lida a cada quadro para ficar mais nítida
-    c.ctxMascara = c.mascara.getContext("2d", { willReadFrequently: true });
-    cacheCamadas.set(s, c);
-    return c;
-  }
-
-  // Copia o quadro atual da câmera para a camada, cortando no formato da área da pessoa
-  function desenharQuadro(c) {
-    const ctx = c.quadro.getContext("2d");
-    const vw = video.videoWidth, vh = video.videoHeight;
-    const r = c.l / c.a;
-    let sw = vw, sh = vw / r;
-    if (sh > vh) { sh = vh; sw = vh * r; }
-    const sx = (vw - sw) / 2;
-    const sy = (vh - sh) * 0.45;
-    ctx.save();
-    ctx.clearRect(0, 0, c.l, c.a);
-    if (frontal) { ctx.translate(c.l, 0); ctx.scale(-1, 1); }
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, c.l, c.a);
-    ctx.restore();
-  }
-
-  // Curva que deixa a borda da máscara mais definida: tira o "fantasma"
-  // das partes em que o MediaPipe ficou em dúvida (abaixo de 30% some, acima de 70% fica inteiro)
-  const CURVA_MASCARA = (() => {
-    const lut = new Uint8ClampedArray(256);
-    const lo = 0.3, hi = 0.7;
-    for (let i = 0; i < 256; i++) {
-      const t = Math.min(1, Math.max(0, (i / 255 - lo) / (hi - lo)));
-      lut[i] = Math.round(t * t * (3 - 2 * t) * 255);
+  /* ---------- moldura (adesivos + frase) ---------- */
+  function desenharMoldura(ctx, escala) {
+    const s = escala || 1;
+    ctx.clearRect(0, 0, LARG * s, ALT * s);
+    for (const a of CONFIG.adesivos) {
+      const img = imagens.get(a.arquivo);
+      if (!img) continue;
+      const w = a.largura * s;
+      const h = w * (img.naturalHeight / img.naturalWidth);
+      ctx.save();
+      ctx.translate(a.x * s, a.y * s);
+      if (a.giro) ctx.rotate((a.giro * Math.PI) / 180);
+      ctx.shadowColor = "rgba(0, 0, 0, .35)";
+      ctx.shadowBlur = 14 * s;
+      ctx.shadowOffsetY = 4 * s;
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      ctx.restore();
     }
-    return lut;
-  })();
-
-  // Prepara a máscara (e o contorno) a partir do resultado do MediaPipe
-  function prepararMascara(c, fonteMascara, final) {
-    const m = c.ctxMascara;
-    const mw = c.mascara.width, mh = c.mascara.height;
-    m.globalCompositeOperation = "source-over";
-    m.clearRect(0, 0, mw, mh);
-    if (fonteMascara) {
-      m.drawImage(fonteMascara, 0, 0, mw, mh);
-      const dados = m.getImageData(0, 0, mw, mh);
-      const px = dados.data;
-      for (let i = 3; i < px.length; i += 4) px[i] = CURVA_MASCARA[px[i]];
-      m.putImageData(dados, 0, 0);
-    } else {
-      m.fillStyle = "#000";
-      m.fillRect(0, 0, mw, mh);
-    }
-    // suaviza o topo para não aparecer um corte reto
-    const faixa = Math.max(8, mh * 0.06);
-    const g = m.createLinearGradient(0, 0, 0, faixa);
-    g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
-    m.globalCompositeOperation = "destination-out";
-    m.fillStyle = g;
-    m.fillRect(0, 0, mw, faixa);
-    m.globalCompositeOperation = "source-over";
-
-    const o = c.contorno.getContext("2d");
-    o.globalCompositeOperation = "source-over";
-    o.clearRect(0, 0, mw, mh);
-    if (fonteMascara && CONFIG.contorno > 0) {
-      const raio = CONFIG.contorno * c.s * ESCALA_MASCARA;
-      const passos = final ? 24 : 12;
-      for (let i = 0; i < passos; i++) {
-        const ang = (i / passos) * Math.PI * 2;
-        o.drawImage(c.mascara, Math.cos(ang) * raio, Math.sin(ang) * raio);
-      }
-      o.drawImage(c.mascara, 0, 0);
-      o.globalCompositeOperation = "source-in";
-      o.fillStyle = "#fff";
-      o.fillRect(0, 0, mw, mh);
-      o.globalCompositeOperation = "source-over";
-    }
-
-    const p = c.pessoa.getContext("2d");
-    p.globalCompositeOperation = "source-over";
-    p.clearRect(0, 0, c.l, c.a);
-    p.drawImage(c.mascara, 0, 0, c.l, c.a);
-    p.globalCompositeOperation = "source-in";
-    p.drawImage(c.quadro, 0, 0);
-    p.globalCompositeOperation = "source-over";
-  }
-
-  // Monta a foto: fundo → contorno → pessoa → enfeites da frente → frase
-  function montar(ctx, c, temMascara, final) {
-    const s = c.s;
-    const W = Math.round(ARTE_L * s), H = Math.round(ARTE_A * s);
-    ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(fundo, 0, 0, W, H);
-    if (temMascara && CONFIG.contorno > 0) {
-      if (final) {
-        ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,.28)";
-        ctx.shadowBlur = 16 * s;
-        ctx.shadowOffsetY = 5 * s;
-      }
-      ctx.drawImage(c.contorno, 0, c.topo, c.l, c.a);
-      if (final) ctx.restore();
-    }
-    ctx.drawImage(c.pessoa, 0, c.topo);
-    ctx.drawImage(frente, 0, 0, W, H);
     desenharFrase(ctx, s, CONFIG.frases[indiceFrase]);
   }
 
@@ -612,80 +519,29 @@
     ctx.restore();
   }
 
-  /* ---------- MediaPipe (recorte da pessoa) ---------- */
-  async function iniciarEfeito() {
-    try {
-      if (typeof SelfieSegmentation === "undefined") throw new Error("MediaPipe não carregou");
-      seg = new SelfieSegmentation({ locateFile: (arquivo) => arquivo });
-      seg.setOptions({ modelSelection: 0, selfieMode: false });
-      seg.onResults((r) => { if (tratadorResultado) tratadorResultado(r); });
-      await seg.initialize();
-      efeitoPronto = true;
-    } catch (e) {
-      console.error("[festa] efeito indisponível:", e);
-      efeitoFalhou = true;
+  // Miniatura da tela inicial: fundo de "festa à noite" com a moldura por cima
+  function desenharCapa() {
+    const c = $("capa");
+    const ctx = c.getContext("2d");
+    const s = c.width / LARG;
+    const g = ctx.createLinearGradient(0, 0, 0, c.height);
+    g.addColorStop(0, "#3B2352");
+    g.addColorStop(1, "#1C1328");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, c.width, c.height);
+    const luzes = [["#E8177D", .2, .55], ["#22C1D6", .8, .62], ["#FFE11A", .55, .78], ["#E8177D", .7, .45], ["#22C1D6", .3, .82]];
+    for (const [cor, x, y] of luzes) {
+      const r = c.width * 0.16;
+      const rg = ctx.createRadialGradient(x * c.width, y * c.height, 0, x * c.width, y * c.height, r);
+      rg.addColorStop(0, cor + "88");
+      rg.addColorStop(1, cor + "00");
+      ctx.fillStyle = rg;
+      ctx.fillRect(0, 0, c.width, c.height);
     }
-    atualizarSelo();
+    ctx.save();
+    desenharMoldura(ctx, s);
+    ctx.restore();
   }
-
-  // Se o celular travar no recorte por mais de 8s, cai pro modo moldura em vez de congelar a tela
-  function segmentar(imagem, aoReceber) {
-    tratadorResultado = aoReceber;
-    const envio = seg.send({ image: imagem });
-    const limite = new Promise((_, falha) => setTimeout(() => falha(new Error("recorte demorou demais")), 8000));
-    return Promise.race([envio, limite]).finally(() => { tratadorResultado = null; });
-  }
-
-  function atualizarSelo() {
-    const selo = $("selo"), texto = $("seloTexto");
-    if (efeitoPronto) { selo.classList.add("oculto"); return; }
-    selo.classList.remove("oculto");
-    if (efeitoFalhou) {
-      selo.querySelector(".girando").style.display = "none";
-      texto.textContent = "Recorte indisponível neste celular: modo moldura";
-      setTimeout(() => selo.classList.add("oculto"), 4000);
-    } else {
-      texto.textContent = "Carregando efeito…";
-    }
-  }
-
-  /* ---------- laço da prévia ---------- */
-  async function quadroDaPrevia() {
-    const c = camadas(ESCALA_PREVIA);
-    desenharQuadro(c);
-    if (efeitoPronto) {
-      try {
-        await segmentar(c.quadro, (r) => {
-          prepararMascara(c, r.segmentationMask, false);
-          montar(ctxPrevia, c, true, false);
-        });
-        return;
-      } catch (e) {
-        console.error("[festa] falha no recorte, usando moldura:", e);
-        efeitoPronto = false; efeitoFalhou = true; atualizarSelo();
-      }
-    }
-    prepararMascara(c, null, false);
-    montar(ctxPrevia, c, false, false);
-  }
-
-  async function laco() {
-    if (!rodando) { loopAtivo = false; return; }
-    if (!ocupado && !capturando && video.readyState >= 2 && video.videoWidth > 0) {
-      ocupado = true;
-      try { await quadroDaPrevia(); } catch (e) { console.error(e); }
-      ocupado = false;
-    }
-    requestAnimationFrame(laco);
-  }
-  function iniciarLaco() {
-    rodando = true;
-    if (!loopAtivo) { loopAtivo = true; requestAnimationFrame(laco); }
-  }
-  const esperarLivre = () => new Promise((ok) => {
-    const ver = () => (ocupado ? requestAnimationFrame(ver) : ok());
-    ver();
-  });
 
   /* ---------- câmera ---------- */
   function pararStream() {
@@ -722,22 +578,23 @@
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: { facingMode: { ideal: virada }, width: { ideal: 1280 }, height: { ideal: 1280 } },
+        video: { facingMode: { ideal: virada }, width: { ideal: 1920 }, height: { ideal: 1920 } },
       });
     } catch (e) {
       $("btnAbrir").disabled = false;
       return mostrarErro(e.name);
     }
-    const ajustes = stream.getVideoTracks()[0].getSettings ? stream.getVideoTracks()[0].getSettings() : {};
+    const trilha = stream.getVideoTracks()[0];
+    const ajustes = trilha.getSettings ? trilha.getSettings() : {};
     frontal = ajustes.facingMode ? ajustes.facingMode === "user" : virada === "user";
+    video.classList.toggle("espelhado", frontal);
     video.srcObject = stream;
-    try { await video.play(); } catch (e) { /* alguns iPhones só tocam após o próximo toque */ }
-    await artePronta;
+    await tudoPronto;
+    desenharMoldura(ctxMoldura);
     $("btnAbrir").disabled = false;
     $("erroInicio").classList.remove("visivel");
     mostrarTela("camera");
-    atualizarSelo();
-    iniciarLaco();
+    try { await video.play(); } catch (e) { /* alguns iPhones só tocam depois do próximo toque */ }
     verificarCameras();
   }
 
@@ -762,28 +619,44 @@
     el.classList.remove("pulso");
   }
 
+  // Copia o quadro atual da câmera, com o mesmo corte que aparece na tela
+  function capturarQuadro() {
+    const ctx = fotoCamera.getContext("2d");
+    const vw = video.videoWidth, vh = video.videoHeight;
+    const r = LARG / ALT;
+    let sw = vw, sh = vw / r;
+    if (sh > vh) { sh = vh; sw = vh * r; }
+    const sx = (vw - sw) / 2;
+    const sy = (vh - sh) * POSICAO_VERTICAL;
+    ctx.save();
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, LARG, ALT);
+    if (frontal) { ctx.translate(LARG, 0); ctx.scale(-1, 1); }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, LARG, ALT);
+    ctx.restore();
+  }
+
   async function tirarFoto() {
-    if (capturando || video.readyState < 2) return;
+    if (capturando) return;
+    if (video.readyState < 2 || !video.videoWidth) { video.play().catch(() => {}); return; }
+    capturando = true;
     $("btnFoto").disabled = true;
     if (timerLigado) await contagemRegressiva();
-    capturando = true;
-    await esperarLivre();
 
-    const fl = $("flash");
-    fl.classList.remove("dispara"); void fl.offsetWidth; fl.classList.add("dispara");
-
-    const c = camadas(1);
-    desenharQuadro(c);
-    fotoTemMascara = false;
-    if (efeitoPronto) {
-      try {
-        await segmentar(c.quadro, (r) => { prepararMascara(c, r.segmentationMask, true); fotoTemMascara = true; });
-      } catch (e) { console.error(e); }
+    if (luzLigada) {
+      const luz = $("luz");
+      luz.classList.add("acesa");
+      await espera(550);            // dá tempo da câmera se ajustar à luz
+      capturarQuadro();
+      await espera(80);
+      luz.classList.remove("acesa");
+    } else {
+      const fl = $("flash");
+      fl.classList.remove("dispara"); void fl.offsetWidth; fl.classList.add("dispara");
+      capturarQuadro();
     }
-    if (!fotoTemMascara) prepararMascara(c, null, true);
-    await gerarFotoFinal();
 
-    rodando = false;
+    await gerarFotoFinal();
     capturando = false;
     $("btnFoto").disabled = false;
     mostrarTela("resultado");
@@ -794,7 +667,9 @@
   async function gerarFotoFinal() {
     const minha = ++geracao;
     $("btnCompartilhar").disabled = true;
-    montar(ctxFinal, camadas(1), fotoTemMascara, true);
+    ctxFinal.clearRect(0, 0, LARG, ALT);
+    ctxFinal.drawImage(fotoCamera, 0, 0);
+    ctxFinal.drawImage(moldura, 0, 0);
     const blob = await new Promise((ok) => telaFinal.toBlob(ok, "image/jpeg", CONFIG.qualidadeJpeg));
     if (minha !== geracao || !blob) return;
     if (fotoUrl) URL.revokeObjectURL(fotoUrl);
@@ -821,12 +696,12 @@
   function outraFoto() {
     mostrarTela("camera");
     if (video.paused) video.play().catch(() => {});
-    iniciarLaco();
   }
 
   /* ---------- frases ---------- */
   function mostrarFrase() {
     $("fraseAtual").textContent = CONFIG.frases[indiceFrase] || "";
+    desenharMoldura(ctxMoldura);
     if (telas.resultado.classList.contains("ativa")) gerarFotoFinal();
   }
   function mudarFrase(passo) {
@@ -866,6 +741,11 @@
     barraFrases.style.display = nome === "inicio" ? "none" : "flex";
   }
 
+  function atualizarBotaoLuz() {
+    $("btnLuz").classList.toggle("luz-ligada", luzLigada);
+    $("btnLuz").setAttribute("aria-pressed", String(luzLigada));
+  }
+
   /* ---------- eventos ---------- */
   $("btnAbrir").addEventListener("click", abrirCamera);
   $("btnFoto").addEventListener("click", tirarFoto);
@@ -874,10 +754,9 @@
     $("btnTimer").classList.toggle("ligado", timerLigado);
     $("btnTimer").setAttribute("aria-pressed", String(timerLigado));
   });
+  $("btnLuz").addEventListener("click", () => { luzLigada = !luzLigada; atualizarBotaoLuz(); });
   $("btnVirar").addEventListener("click", async () => {
     virada = virada === "user" ? "environment" : "user";
-    rodando = false;
-    await esperarLivre();
     await abrirCamera();
   });
   $("btnFraseAnt").addEventListener("click", () => mudarFrase(-1));
@@ -895,13 +774,12 @@
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     $("dica").textContent = "Dá pra trocar a frase antes de postar. Pra guardar na galeria: Compartilhar → Salvar imagem.";
   }
-  mostrarFrase();
-  previa.width = Math.round(ARTE_L * ESCALA_PREVIA);
-  previa.height = Math.round(ARTE_A * ESCALA_PREVIA);
-  iniciarEfeito();   // já vai baixando o efeito enquanto a pessoa lê a tela inicial
+  atualizarBotaoLuz();
+  $("fraseAtual").textContent = CONFIG.frases[indiceFrase] || "";
+  tudoPronto.then(() => { desenharCapa(); desenharMoldura(ctxMoldura); });
 
-  // atalho para testes: window.festa
-  window.festa = { CONFIG, get efeitoPronto() { return efeitoPronto; }, get efeitoFalhou() { return efeitoFalhou; } };
+  // atalho para testes e ajustes pelo console: window.festa
+  window.festa = { CONFIG, redesenhar: () => { desenharMoldura(ctxMoldura); desenharCapa(); } };
 })();
 </script>
 </body>
